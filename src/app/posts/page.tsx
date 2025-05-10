@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,32 +27,32 @@ export default function PostsPage() {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
-  const [search, setSearch] = useState('')
   const [unauthorized, setUnauthorized] = useState(false)
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = () => {
     localStorage.removeItem('role')
     localStorage.removeItem('userId')
     router.push('/login')
-  }, [router])
+  }
 
   useEffect(() => {
     const role = localStorage.getItem('role')
     const userId = localStorage.getItem('userId')
 
-    if (!role || !userId) {
+    if (!role || (role !== 'admin' && !userId)) {
       setUnauthorized(true)
-      setLoading(false)
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
       return
     }
 
-    const fetchPostsAndComments = async () => {
+    const fetchData = async () => {
       try {
         const [postsRes, commentsRes] = await Promise.all([
           fetch('https://jsonplaceholder.typicode.com/posts'),
           fetch('https://jsonplaceholder.typicode.com/comments'),
         ])
-
         const postsData: Post[] = await postsRes.json()
         const commentsData: Comment[] = await commentsRes.json()
 
@@ -63,118 +63,92 @@ export default function PostsPage() {
           const filteredPosts = postsData.filter(p => p.userId.toString() === userId)
           const filteredPostIds = filteredPosts.map(p => p.id)
           const filteredComments = commentsData.filter(c => filteredPostIds.includes(c.postId))
-
           setPosts(filteredPosts)
           setComments(filteredComments)
         }
-      } catch (error) {
-        console.error('Error fetching data:', error)
+      } catch (err) {
+        console.error('Fetch error:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchPostsAndComments()
+    fetchData()
   }, [router])
-
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(search.toLowerCase()) ||
-    post.body.toLowerCase().includes(search.toLowerCase())
-  )
 
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-center items-center mb-6">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans">
-            POSTS
-          </h1>
-        </div>
-
-        {!unauthorized && (
-          <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <input
-              type="text"
-              placeholder="Search posts..."
-              className="w-full sm:w-2/3 p-4 rounded-xl bg-[#1f1f1f] text-white border border-[#EE7879] placeholder:text-gray-400 focus:ring-2 focus:ring-[#f7d3d3] outline-none text-lg"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full sm:w-auto bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-4 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center text-lg font-medium">Loading...</div>
-        ) : unauthorized ? (
-          <Card className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] border-none shadow-2xl rounded-3xl p-8 sm:p-12 text-white transition-all duration-300 hover:shadow-[#EE7879]/50 hover:scale-105">
-            <CardHeader>
-              <CardTitle className="text-3xl text-white font-semibold">Unauthorized User</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-6 text-xl">Please log in to view posts.</p>
-              <Button
-                onClick={() => router.push('/login')}
-                className="w-full bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-5 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
-              >
-                Go to Login
-              </Button>
-            </CardContent>
-          </Card>
-        ) : filteredPosts.length === 0 ? (
-          <div className="text-center text-lg text-gray-400">No posts found.</div>
+        {unauthorized ? (
+          <div className="text-center text-red-500 text-2xl font-bold mt-20">Unauthorized</div>
         ) : (
-          filteredPosts.map(post => (
-            <motion.div
-              key={post.id}
-              whileHover={{ scale: 1.02 }}
-              className="mb-6"
-              onClick={() =>
-                setSelectedPostId(prev => (prev === post.id ? null : post.id))
-              }
-            >
-              <Card className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white border-none rounded-3xl shadow-2xl transition-shadow duration-300 hover:shadow-[#EE7879]/50 cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="text-xl text-[#FFD6D5]">{post.title}</CardTitle>
-                </CardHeader>
+          <>
+            <div className="flex justify-center items-center mb-6">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans">
+                POSTS
+              </h1>
+            </div>
 
-                {selectedPostId === post.id && (
-                  <CardContent className="space-y-4">
-                    <p>{post.body}</p>
-                    <div>
-                      <h3 className="text-lg font-semibold text-[#FFD6D5]">Comments:</h3>
-                      {comments
-                        .filter(c => c.postId === post.id)
-                        .map(comment => (
-                          <div
-                            key={comment.id}
-                            className="bg-[#2b1010] p-4 rounded-lg mb-4 shadow-lg hover:shadow-xl transition-shadow duration-300"
-                          >
-                            <div className="flex items-center space-x-4 mb-2">
-                              {/* Avatar */}
-                              <div className="w-10 h-10 rounded-full bg-[#EE7879] flex items-center justify-center text-white text-lg font-semibold">
-                                {comment.name[0]}
+            <div className="mb-10 flex justify-end">
+              <button
+                onClick={handleLogout}
+                className="bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-4 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
+              >
+                Logout
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="text-center text-lg font-medium">Loading...</div>
+            ) : posts.length === 0 ? (
+              <div className="text-center text-lg text-gray-400">No posts found.</div>
+            ) : (
+              posts.map(post => (
+                <motion.div
+                  key={post.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="mb-6"
+                  onClick={() =>
+                    setSelectedPostId(prev => (prev === post.id ? null : post.id))
+                  }
+                >
+                  <Card className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white border-none rounded-3xl shadow-2xl transition-shadow duration-300 hover:shadow-[#EE7879]/50 cursor-pointer">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-[#FFD6D5]">{post.title}</CardTitle>
+                    </CardHeader>
+
+                    {selectedPostId === post.id && (
+                      <CardContent className="space-y-4">
+                        <p>{post.body}</p>
+                        <div>
+                          <h3 className="text-lg font-semibold text-[#FFD6D5]">Comments:</h3>
+                          {comments
+                            .filter(c => c.postId === post.id)
+                            .map(comment => (
+                              <div
+                                key={comment.id}
+                                className="bg-[#2b1010] p-4 rounded-lg mb-4 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                              >
+                                <div className="flex items-center space-x-4 mb-2">
+                                  <div className="w-10 h-10 rounded-full bg-[#EE7879] flex items-center justify-center text-white text-lg font-semibold">
+                                    {comment.name[0]}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-white">{comment.name}</p>
+                                    <p className="text-xs text-gray-400">{comment.email}</p>
+                                  </div>
+                                </div>
+                                <p className="text-white">{comment.body}</p>
                               </div>
-                              <div>
-                                <p className="font-medium text-white">{comment.name}</p>
-                                <p className="text-xs text-gray-400">{comment.email}</p>
-                              </div>
-                            </div>
-                            <p className="text-white">{comment.body}</p>
-                          </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            </motion.div>
-          ))
+                            ))}
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                </motion.div>
+              ))
+            )}
+          </>
         )}
       </div>
     </main>
