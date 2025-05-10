@@ -55,7 +55,7 @@ export default function AboutUsPage() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans"
         >
-          MEET OUT TEAM
+          MEET OUR TEAM
         </motion.h1>
 
         {/* Cards Grid */}
