@@ -28,6 +28,7 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
   const [unauthorized, setUnauthorized] = useState(false)
+  const [search, setSearch] = useState('')
 
   const handleLogout = () => {
     localStorage.removeItem('role')
@@ -76,6 +77,11 @@ export default function PostsPage() {
     fetchData()
   }, [router])
 
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(search.toLowerCase()) ||
+    post.body.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
       <div className="max-w-5xl mx-auto">
@@ -83,13 +89,20 @@ export default function PostsPage() {
           <div className="text-center text-red-500 text-2xl font-bold mt-20">Unauthorized</div>
         ) : (
           <>
-            <div className="flex justify-center items-center mb-6">
+            <div className="flex justify-center items-center mb-1">
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans">
                 POSTS
               </h1>
             </div>
 
-            <div className="mb-10 flex justify-end">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <input
+                type="text"
+                placeholder="Search by title or body"
+                className="w-full sm:w-2/3 p-4 rounded-xl bg-[#1f1f1f] text-white border border-[#EE7879] placeholder:text-gray-400 focus:ring-2 focus:ring-[#f7d3d3] outline-none transition duration-200 text-lg"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
               <button
                 onClick={handleLogout}
                 className="bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-4 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
@@ -100,10 +113,10 @@ export default function PostsPage() {
 
             {loading ? (
               <div className="text-center text-lg font-medium">Loading...</div>
-            ) : posts.length === 0 ? (
+            ) : filteredPosts.length === 0 ? (
               <div className="text-center text-lg text-gray-400">No posts found.</div>
             ) : (
-              posts.map(post => (
+              filteredPosts.map(post => (
                 <motion.div
                   key={post.id}
                   whileHover={{ scale: 1.02 }}
