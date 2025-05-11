@@ -2,23 +2,46 @@
 
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
-import { ApexOptions } from 'apexcharts';
+import { ApexOptions, ApexAxisChartSeries } from 'apexcharts';
 import { motion } from 'framer-motion';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
+// Types for API responses
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  // add more if needed
+}
+
+interface Post {
+  id: number;
+  userId: number;
+  title: string;
+  body: string;
+}
+
+interface Comment {
+  id: number;
+  postId: number;
+  name: string;
+  email: string;
+  body: string;
+}
+
 export default function DashboardPage() {
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<User[]>({
     queryKey: ['users'],
     queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/users')).json(),
   });
 
-  const { data: posts } = useQuery({
+  const { data: posts } = useQuery<Post[]>({
     queryKey: ['posts'],
     queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/posts')).json(),
   });
 
-  const { data: comments } = useQuery({
+  const { data: comments } = useQuery<Comment[]>({
     queryKey: ['comments'],
     queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/comments')).json(),
   });
@@ -31,7 +54,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Chart Data for Users, Posts, and Comments
+  // Donut Chart Data
   const donutChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
@@ -68,13 +91,13 @@ export default function DashboardPage() {
         fontSize: '18px',
         labels: {
           colors: '#ffffff',
-          useSeriesColors: false,
         },
       },
     },
   };
 
-  const barChartData: { series: any[]; options: ApexOptions } = {
+  // Bar Chart Data
+  const barChartData: { series: ApexAxisChartSeries; options: ApexOptions } = {
     series: [
       {
         name: 'Users',
@@ -114,22 +137,21 @@ export default function DashboardPage() {
         fontSize: '18px',
         labels: {
           colors: '#ffffff',
-          useSeriesColors: false,
         },
       },
     },
   };
 
-  // Pie chart data (last chart)
+  // Pie Chart Data
   const pieChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
       labels: ['Users', 'Posts', 'Comments'],
       chart: {
-        type: 'pie', // Change type to 'pie'
+        type: 'pie',
         background: 'transparent',
       },
-      colors: ['#00E396', '#FF4560', '#F8A7B4'], // Applying the colors from the bar chart here
+      colors: ['#00E396', '#FF4560', '#F8A7B4'],
       dataLabels: {
         enabled: true,
         formatter: (val: number, opts) => {
@@ -157,7 +179,6 @@ export default function DashboardPage() {
         fontSize: '18px',
         labels: {
           colors: '#ffffff',
-          useSeriesColors: false,
         },
       },
     },
@@ -166,7 +187,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
       <div className="max-w-7xl mx-auto">
-        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,22 +196,20 @@ export default function DashboardPage() {
           DASHBOARD
         </motion.h1>
 
-        {/* Overview Card */}
-          <motion.div
-            key="overview-card"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="bg-gradient-to-br from-[#2b1010] to-[#4a1c1c] text-white rounded-3xl shadow-2xl p-10 text-center mx-auto mb-12 max-w-4xl w-full"
-          >
-            <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
-              Overview of Users, Posts & Comments
-            </h3>
-            <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
-              Explore the overall breakdown of user-related activities within the platform through visual insights below.
-            </p>
-          </motion.div>
-
+        <motion.div
+          key="overview-card"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="bg-gradient-to-br from-[#2b1010] to-[#4a1c1c] text-white rounded-3xl shadow-2xl p-10 text-center mx-auto mb-12 max-w-4xl w-full"
+        >
+          <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
+            Overview of Users, Posts & Comments
+          </h3>
+          <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
+            Explore the overall breakdown of user-related activities within the platform through visual insights below.
+          </p>
+        </motion.div>
 
         {/* Donut Chart */}
         <motion.div
