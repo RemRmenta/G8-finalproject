@@ -1,155 +1,156 @@
-'use client';
+'use client'
 
-import dynamic from 'next/dynamic';
-import { useQuery } from '@tanstack/react-query';
-import { ApexOptions } from 'apexcharts';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+interface Post {
+  userId: number
+  id: number
+  title: string
+  body: string
+}
 
-export default function DashboardPage() {
-  const router = useRouter(); // Initialize router for navigation
+interface Comment {
+  postId: number
+  id: number
+  name: string
+  email: string
+  body: string
+}
 
-  const { data: users } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/users')).json(),
-  });
+export default function PostsPage() {
+  const router = useRouter()
+  const [posts, setPosts] = useState<Post[]>([])
+  const [comments, setComments] = useState<Comment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
+  const [unauthorized, setUnauthorized] = useState(false)
 
-  const { data: posts } = useQuery({
-    queryKey: ['posts'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/posts')).json(),
-  });
-
-  const { data: comments } = useQuery({
-    queryKey: ['comments'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/comments')).json(),
-  });
-
-  if (!users || !posts || !comments) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-gray-600 text-lg font-medium">
-        Loading...
-      </div>
-    );
+  const handleLogout = () => {
+    localStorage.removeItem('role')
+    localStorage.removeItem('userId')
+    router.push('/login')
   }
 
-  const total = users.length + posts.length + comments.length;
+  useEffect(() => {
+    const role = localStorage.getItem('role')
+    const userId = localStorage.getItem('userId')
 
-  const chartData: { series: number[]; options: ApexOptions } = {
-    series: [users.length, posts.length, comments.length],
-    options: {
-      labels: ['Users', 'Posts', 'Comments'],
-      chart: {
-        type: 'donut',
-        background: 'transparent',
-        toolbar: { show: false },
-        dropShadow: {
-          enabled: true,
-          top: 3,
-          left: 3,
-          blur: 5,
-          opacity: 0.1,
-        },
-      },
-      colors: ['#FDE2E4', '#F8A7B4', '#F36F8A'],
-      dataLabels: {
-        enabled: true,
-        formatter: (val: number, opts) => {
-          const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / total) * 100).toFixed(1);
-          return `${percentage}%`;
-        },
-        style: {
-          fontSize: '16px',
-          fontWeight: 'bold',
-          colors: ['#ffffff'], // Light label text
-        },
-        offsetX: 0,
-        offsetY: 10,
-      },
-      tooltip: {
-        theme: 'light', // Light tooltip for dark background
-        y: {
-          formatter: (value: number) => {
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${value} (${percentage}%)`;
-          },
-        },
-      },
-      legend: {
-        position: 'bottom',
-        fontSize: '18px', // Increase text size
-        labels: {
-          colors: '#ffffff',
-          useSeriesColors: false,
-        },
-        itemMargin: {
-          horizontal: 15,
-          vertical: 10
-        },
-        onItemHover: {
-          highlightDataSeries: true,
-        },
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '60%',
-          },
-        },
-      },
-    },
-  };
+    if (!role || (role !== 'admin' && !userId)) {
+      setUnauthorized(true)
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+      return
+    }
 
-  const handleBack = () => {
-    router.push('/about-us'); // Navigate to the About Us page
-  };
+    const fetchData = async () => {
+      try {
+        const [postsRes, commentsRes] = await Promise.all([
+          fetch('https://jsonplaceholder.typicode.com/posts'),
+          fetch('https://jsonplaceholder.typicode.com/comments'),
+        ])
+        const postsData: Post[] = await postsRes.json()
+        const commentsData: Comment[] = await commentsRes.json()
+
+        if (role === 'admin') {
+          setPosts(postsData)
+          setComments(commentsData)
+        } else {
+          const filteredPosts = postsData.filter(p => p.userId.toString() === userId)
+          const filteredPostIds = filteredPosts.map(p => p.id)
+          const filteredComments = commentsData.filter(c => filteredPostIds.includes(c.postId))
+          setPosts(filteredPosts)
+          setComments(filteredComments)
+        }
+      } catch (err) {
+        console.error('Fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [router])
 
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
-      <div className="max-w-7xl mx-auto">
-        {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans"
-        >
-          DASHBOARD
-        </motion.h1>
+      <div className="max-w-5xl mx-auto">
+        {unauthorized ? (
+          <div className="text-center text-red-500 text-2xl font-bold mt-20">Unauthorized</div>
+        ) : (
+          <>
+            <div className="flex justify-center items-center mb-6">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans">
+                POSTS
+              </h1>
+            </div>
 
-        {/* Back Button */}
-        <div className="mb-10 flex justify-end">
-          <motion.button
-            onClick={handleBack}
-            className="bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-4 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
-          >
-            Back to About Us
-          </motion.button>
-        </div>
+            <div className="mb-10 flex justify-end">
+              <button
+                onClick={handleLogout}
+                className="bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-4 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
+              >
+                Logout
+              </button>
+            </div>
 
-        {/* Single Large Card */}
-        <motion.div
-          key="dashboard-card"
-          whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white rounded-3xl shadow-2xl p-12 text-center mx-auto transition-transform duration-300 hover:shadow-[#EE7879]/50 max-w-4xl w-full"
-        >
-          {/* Chart */}
-          <div className="w-full max-w-full sm:max-w-[600px] md:max-w-[800px] mx-auto mb-8">
-            <Chart options={chartData.options} series={chartData.series} type="donut" width="100%" />
-          </div>
+            {loading ? (
+              <div className="text-center text-lg font-medium">Loading...</div>
+            ) : posts.length === 0 ? (
+              <div className="text-center text-lg text-gray-400">No posts found.</div>
+            ) : (
+              posts.map(post => (
+                <motion.div
+                  key={post.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="mb-6"
+                  onClick={() =>
+                    setSelectedPostId(prev => (prev === post.id ? null : post.id))
+                  }
+                >
+                  <Card className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white border-none rounded-3xl shadow-2xl transition-shadow duration-300 hover:shadow-[#EE7879]/50 cursor-pointer">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-[#FFD6D5]">{post.title}</CardTitle>
+                    </CardHeader>
 
-          {/* Title */}
-          <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
-            Overview of User & Content Distribution
-          </h3>
-          {/* Additional Info */}
-          <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
-            This chart shows the distribution of users, posts, and comments across the platform. 
-          </p>
-        </motion.div>
+                    {selectedPostId === post.id && (
+                      <CardContent className="space-y-4">
+                        <p>{post.body}</p>
+                        <div>
+                          <h3 className="text-lg font-semibold text-[#FFD6D5]">Comments:</h3>
+                          {comments
+                            .filter(c => c.postId === post.id)
+                            .map(comment => (
+                              <div
+                                key={comment.id}
+                                className="bg-[#2b1010] p-4 rounded-lg mb-4 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                              >
+                                <div className="flex items-center space-x-4 mb-2">
+                                  <div className="w-10 h-10 rounded-full bg-[#EE7879] flex items-center justify-center text-white text-lg font-semibold">
+                                    {comment.name[0]}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-white">{comment.name}</p>
+                                    <p className="text-xs text-gray-400">{comment.email}</p>
+                                  </div>
+                                </div>
+                                <p className="text-white">{comment.body}</p>
+                              </div>
+                            ))}
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                </motion.div>
+              ))
+            )}
+          </>
+        )}
       </div>
     </main>
-  );
+  )
 }
