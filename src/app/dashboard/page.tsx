@@ -1,8 +1,6 @@
-'use client';
-
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
-import { ApexOptions } from 'apexcharts';
+import { ApexOptions, ApexAxisChartSeries } from 'apexcharts';
 import { motion } from 'framer-motion';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -10,17 +8,20 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 export default function DashboardPage() {
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/users')).json(),
+    queryFn: async () =>
+      (await fetch('https://jsonplaceholder.typicode.com/users')).json(),
   });
 
   const { data: posts } = useQuery({
     queryKey: ['posts'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/posts')).json(),
+    queryFn: async () =>
+      (await fetch('https://jsonplaceholder.typicode.com/posts')).json(),
   });
 
   const { data: comments } = useQuery({
     queryKey: ['comments'],
-    queryFn: async () => (await fetch('https://jsonplaceholder.typicode.com/comments')).json(),
+    queryFn: async () =>
+      (await fetch('https://jsonplaceholder.typicode.com/comments')).json(),
   });
 
   if (!users || !posts || !comments) {
@@ -31,7 +32,8 @@ export default function DashboardPage() {
     );
   }
 
-  // Chart Data for Users, Posts, and Comments
+  const total = users.length + posts.length + comments.length;
+
   const donutChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
@@ -43,9 +45,9 @@ export default function DashboardPage() {
       colors: ['#FDE2E4', '#F8A7B4', '#F36F8A'],
       dataLabels: {
         enabled: true,
-        formatter: (val: number, opts) => {
+        formatter: (val, opts) => {
           const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+          const percentage = ((raw / total) * 100).toFixed(1);
           return `${percentage}%`;
         },
         style: {
@@ -58,7 +60,7 @@ export default function DashboardPage() {
         theme: 'light',
         y: {
           formatter: (value: number) => {
-            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+            const percentage = ((value / total) * 100).toFixed(1);
             return `${value} (${percentage}%)`;
           },
         },
@@ -74,20 +76,11 @@ export default function DashboardPage() {
     },
   };
 
-  const barChartData: { series: any[]; options: ApexOptions } = {
+  const barChartData: { series: ApexAxisChartSeries; options: ApexOptions } = {
     series: [
-      {
-        name: 'Users',
-        data: [users.length],
-      },
-      {
-        name: 'Posts',
-        data: [posts.length],
-      },
-      {
-        name: 'Comments',
-        data: [comments.length],
-      },
+      { name: 'Users', data: [users.length] },
+      { name: 'Posts', data: [posts.length] },
+      { name: 'Comments', data: [comments.length] },
     ],
     options: {
       chart: {
@@ -120,21 +113,20 @@ export default function DashboardPage() {
     },
   };
 
-  // Pie chart data (last chart)
   const pieChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
       labels: ['Users', 'Posts', 'Comments'],
       chart: {
-        type: 'pie', // Change type to 'pie'
+        type: 'pie',
         background: 'transparent',
       },
-      colors: ['#00E396', '#FF4560', '#F8A7B4'], // Applying the colors from the bar chart here
+      colors: ['#00E396', '#FF4560', '#F8A7B4'],
       dataLabels: {
         enabled: true,
-        formatter: (val: number, opts) => {
+        formatter: (val, opts) => {
           const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+          const percentage = ((raw / total) * 100).toFixed(1);
           return `${percentage}%`;
         },
         style: {
@@ -147,7 +139,7 @@ export default function DashboardPage() {
         theme: 'light',
         y: {
           formatter: (value: number) => {
-            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+            const percentage = ((value / total) * 100).toFixed(1);
             return `${value} (${percentage}%)`;
           },
         },
@@ -164,34 +156,31 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
+    <main className="min-h-screen bg-gray-900 px-8 py-20 text-white font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide font-sans"
+          className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-center mb-16 bg-gradient-to-r from-[#EE7879] via-[#f7d3d3] to-[#EE7879] bg-clip-text text-transparent drop-shadow-lg tracking-wide"
         >
           DASHBOARD
         </motion.h1>
 
-        {/* Overview Card */}
-          <motion.div
-            key="overview-card"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="bg-gradient-to-br from-[#2b1010] to-[#4a1c1c] text-white rounded-3xl shadow-2xl p-10 text-center mx-auto mb-12 max-w-4xl w-full"
-          >
-            <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
-              Overview of Users, Posts & Comments
-            </h3>
-            <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
-              Explore the overall breakdown of user-related activities within the platform through visual insights below.
-            </p>
-          </motion.div>
-
+        <motion.div
+          key="overview-card"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="bg-gradient-to-br from-[#2b1010] to-[#4a1c1c] text-white rounded-3xl shadow-2xl p-10 text-center mx-auto mb-12 max-w-4xl w-full"
+        >
+          <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
+            Overview of Users, Posts & Comments
+          </h3>
+          <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
+            Explore the overall breakdown of user-related activities within the platform through visual insights below.
+          </p>
+        </motion.div>
 
         {/* Donut Chart */}
         <motion.div
