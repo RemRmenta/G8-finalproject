@@ -31,69 +31,133 @@ export default function DashboardPage() {
     );
   }
 
-  const total = users.length + posts.length + comments.length;
-
-  const chartData: { series: number[]; options: ApexOptions } = {
+  // Chart Data for Users, Posts, and Comments
+  const donutChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
       labels: ['Users', 'Posts', 'Comments'],
       chart: {
         type: 'donut',
         background: 'transparent',
-        toolbar: { show: false },
-        dropShadow: {
-          enabled: true,
-          top: 3,
-          left: 3,
-          blur: 5,
-          opacity: 0.1,
-        },
       },
       colors: ['#FDE2E4', '#F8A7B4', '#F36F8A'],
       dataLabels: {
         enabled: true,
         formatter: (val: number, opts) => {
           const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / total) * 100).toFixed(1);
+          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
           return `${percentage}%`;
         },
         style: {
           fontSize: '16px',
           fontWeight: 'bold',
-          colors: ['#ffffff'], // Light label text
+          colors: ['#ffffff'],
         },
-        offsetX: 0,
-        offsetY: 10,
       },
       tooltip: {
-        theme: 'light', // Light tooltip for dark background
+        theme: 'light',
         y: {
           formatter: (value: number) => {
-            const percentage = ((value / total) * 100).toFixed(1);
+            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
             return `${value} (${percentage}%)`;
           },
         },
       },
       legend: {
         position: 'bottom',
-        fontSize: '18px', // Increase text size
+        fontSize: '18px',
         labels: {
           colors: '#ffffff',
           useSeriesColors: false,
         },
-        itemMargin: {
-          horizontal: 15,
-          vertical: 10
-        },
-        onItemHover: {
-          highlightDataSeries: true,
+      },
+    },
+  };
+
+  const barChartData: { series: any[]; options: ApexOptions } = {
+    series: [
+      {
+        name: 'Users',
+        data: [users.length],
+      },
+      {
+        name: 'Posts',
+        data: [posts.length],
+      },
+      {
+        name: 'Comments',
+        data: [comments.length],
+      },
+    ],
+    options: {
+      chart: {
+        type: 'bar',
+        background: 'transparent',
+      },
+      colors: ['#00E396', '#FF4560', '#F8A7B4'],
+      xaxis: {
+        categories: ['Total'],
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontSize: '14px',
+          fontWeight: 'bold',
+          colors: ['#ffffff'],
         },
       },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '60%',
+      tooltip: {
+        theme: 'light',
+      },
+      legend: {
+        position: 'bottom',
+        fontSize: '18px',
+        labels: {
+          colors: '#ffffff',
+          useSeriesColors: false,
+        },
+      },
+    },
+  };
+
+  // Pie chart data (last chart)
+  const pieChartData: { series: number[]; options: ApexOptions } = {
+    series: [users.length, posts.length, comments.length],
+    options: {
+      labels: ['Users', 'Posts', 'Comments'],
+      chart: {
+        type: 'pie', // Change type to 'pie'
+        background: 'transparent',
+      },
+      colors: ['#00E396', '#FF4560', '#F8A7B4'], // Applying the colors from the bar chart here
+      dataLabels: {
+        enabled: true,
+        formatter: (val: number, opts) => {
+          const raw = opts.w.config.series[opts.seriesIndex];
+          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+          return `${percentage}%`;
+        },
+        style: {
+          fontSize: '16px',
+          fontWeight: 'bold',
+          colors: ['#ffffff'],
+        },
+      },
+      tooltip: {
+        theme: 'light',
+        y: {
+          formatter: (value: number) => {
+            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+            return `${value} (${percentage}%)`;
           },
+        },
+      },
+      legend: {
+        position: 'bottom',
+        fontSize: '18px',
+        labels: {
+          colors: '#ffffff',
+          useSeriesColors: false,
         },
       },
     },
@@ -112,24 +176,56 @@ export default function DashboardPage() {
           DASHBOARD
         </motion.h1>
 
-        {/* Single Large Card */}
-        <motion.div
-          key="dashboard-card"
-          whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white rounded-3xl shadow-2xl p-12 text-center mx-auto transition-transform duration-300 hover:shadow-[#EE7879]/50 max-w-4xl w-full"
-        >
-          {/* Chart */}
-          <div className="w-full max-w-full sm:max-w-[600px] md:max-w-[800px] mx-auto mb-8">
-            <Chart options={chartData.options} series={chartData.series} type="donut" width="100%" />
-          </div>
+        {/* Overview Card */}
+          <motion.div
+            key="overview-card"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="bg-gradient-to-br from-[#2b1010] to-[#4a1c1c] text-white rounded-3xl shadow-2xl p-10 text-center mx-auto mb-12 max-w-4xl w-full"
+          >
+            <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
+              Overview of Users, Posts & Comments
+            </h3>
+            <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
+              Explore the overall breakdown of user-related activities within the platform through visual insights below.
+            </p>
+          </motion.div>
 
-          {/* Title */}
-          <h3 className="text-3xl sm:text-4xl italic font-extrabold bg-gradient-to-r from-white via-[#f8c1c1] to-white bg-clip-text text-transparent tracking-wide mb-4">
-            Overview of User & Content Distribution
-          </h3>
-          {/* Additional Info */}
+
+        {/* Donut Chart */}
+        <motion.div
+          key="donut-chart"
+          whileHover={{ scale: 1.05 }}
+          className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white rounded-3xl shadow-2xl p-12 text-center mx-auto transition-transform duration-300 hover:shadow-[#EE7879]/50 max-w-4xl w-full mb-12"
+        >
+          <Chart options={donutChartData.options} series={donutChartData.series} type="donut" width="100%" />
           <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
-            This chart shows the distribution of users, posts, and comments across the platform. 
+            This donut chart shows the distribution of users, posts, and comments across the platform.
+          </p>
+        </motion.div>
+
+        {/* Pie Chart */}
+        <motion.div
+          key="pie-chart"
+          whileHover={{ scale: 1.05 }}
+          className="bg-gradient-to-br from-[#FDE2E4] to-[#2b1010] text-white rounded-3xl shadow-2xl p-12 text-center mx-auto transition-transform duration-300 hover:shadow-[#FDE2E4]/50 max-w-4xl w-full mb-12"
+        >
+          <Chart options={pieChartData.options} series={pieChartData.series} type="pie" width="100%" />
+          <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
+            This pie chart represents the distribution of users, posts, and comments across the platform.
+          </p>
+        </motion.div>
+
+        {/* Bar Chart */}
+        <motion.div
+          key="bar-chart"
+          whileHover={{ scale: 1.05 }}
+          className="bg-gradient-to-br from-[#00E396] to-[#2b1010] text-white rounded-3xl shadow-2xl p-12 text-center mx-auto transition-transform duration-300 hover:shadow-[#00E396]/50 max-w-4xl w-full mb-12"
+        >
+          <Chart options={barChartData.options} series={barChartData.series} type="bar" width="100%" />
+          <p className="text-base sm:text-lg text-gray-200 leading-relaxed tracking-wide px-2">
+            This bar chart visualizes the total number of users, posts, and comments.
           </p>
         </motion.div>
       </div>
