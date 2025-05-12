@@ -80,5 +80,5 @@ Access the app at: [http://localhost:3000](http://localhost:3000)
 ## 🔗 Project Links
 
 - 📂 GitHub Repository: [https://github.com/RemRmenta/G8-finalproject](https://github.com/RemRmenta/G8-finalproject)
-- 🌐 Deployed Application: [https://g8-finalproject-q3fy.vercel.app] (https://g8-finalproject-q3fy.vercel.app/register)
+- 🌐 Deployed Application: [https://g8-finalproject-q3fy.vercel.app]
 
