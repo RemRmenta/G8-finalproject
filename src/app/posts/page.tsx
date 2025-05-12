@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 
 interface Post {
@@ -28,6 +29,10 @@ export default function PostsPage() {
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
   const [unauthorized, setUnauthorized] = useState(false)
   const [search, setSearch] = useState('')
+  const [newPostTitle, setNewPostTitle] = useState('')
+  const [newPostBody, setNewPostBody] = useState('')
+  const [role, setRole] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const handleLogout = () => {
     localStorage.removeItem('role')
@@ -36,10 +41,13 @@ export default function PostsPage() {
   }
 
   useEffect(() => {
-    const role = localStorage.getItem('role')
-    const userId = localStorage.getItem('userId')
+    const storedRole = localStorage.getItem('role')
+    const storedUserId = localStorage.getItem('userId')
 
-    if (!role || (role !== 'admin' && !userId)) {
+    setRole(storedRole)
+    setUserId(storedUserId)
+
+    if (!storedRole || (storedRole !== 'admin' && !storedUserId)) {
       setUnauthorized(true)
       setTimeout(() => {
         router.push('/login')
@@ -56,11 +64,11 @@ export default function PostsPage() {
         const postsData: Post[] = await postsRes.json()
         const commentsData: Comment[] = await commentsRes.json()
 
-        if (role === 'admin') {
+        if (storedRole === 'admin') {
           setPosts(postsData)
           setComments(commentsData)
         } else {
-          const filteredPosts = postsData.filter(p => p.userId.toString() === userId)
+          const filteredPosts = postsData.filter(p => p.userId.toString() === storedUserId)
           const filteredPostIds = filteredPosts.map(p => p.id)
           const filteredComments = commentsData.filter(c => filteredPostIds.includes(c.postId))
           setPosts(filteredPosts)
@@ -80,6 +88,23 @@ export default function PostsPage() {
     post.title.toLowerCase().includes(search.toLowerCase()) ||
     post.body.toLowerCase().includes(search.toLowerCase())
   )
+
+  const handleAddPost = () => {
+    if (!newPostTitle || !newPostBody) return
+    const newPost: Post = {
+      userId: parseInt(userId || '0'),
+      id: Date.now(), // Temporary unique ID
+      title: newPostTitle,
+      body: newPostBody,
+    }
+    setPosts(prev => [newPost, ...prev])
+    setNewPostTitle('')
+    setNewPostBody('')
+  }
+
+  const handleDeletePost = (id: number) => {
+    setPosts(prev => prev.filter(post => post.id !== id))
+  }
 
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
@@ -110,6 +135,25 @@ export default function PostsPage() {
               </button>
             </div>
 
+            {/* Add Post Form */}
+            <div className="mb-10 p-6 rounded-xl bg-[#1f1f1f] space-y-4 border border-[#EE7879]">
+              <h2 className="text-2xl font-bold">Add New Post</h2>
+              <input
+                type="text"
+                placeholder="Title"
+                className="w-full p-3 rounded-md bg-[#2b1010] border border-[#EE7879] text-white"
+                value={newPostTitle}
+                onChange={(e) => setNewPostTitle(e.target.value)}
+              />
+              <textarea
+                placeholder="Body"
+                className="w-full p-3 rounded-md bg-[#2b1010] border border-[#EE7879] text-white"
+                value={newPostBody}
+                onChange={(e) => setNewPostBody(e.target.value)}
+              />
+              <Button onClick={handleAddPost}>Add Post</Button>
+            </div>
+
             {loading ? (
               <div className="text-center text-lg font-medium">Loading...</div>
             ) : filteredPosts.length === 0 ? (
@@ -125,8 +169,19 @@ export default function PostsPage() {
                   }
                 >
                   <Card className="bg-gradient-to-br from-[#EE7879] to-[#2b1010] text-white border-none rounded-3xl shadow-2xl transition-shadow duration-300 hover:shadow-[#EE7879]/50 cursor-pointer">
-                    <CardHeader>
+                    <CardHeader className="flex justify-between items-center">
                       <CardTitle className="text-xl text-[#FFD6D5]">{post.title}</CardTitle>
+                      {role === 'admin' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeletePost(post.id)
+                          }}
+                          className="text-red-400 hover:text-red-600 text-sm"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </CardHeader>
 
                     {selectedPostId === post.id && (
