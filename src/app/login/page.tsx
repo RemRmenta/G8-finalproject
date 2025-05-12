@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
+import { Eye, EyeOff } from 'lucide-react' // ✅ Import Lucide icons
 
 type JsonUser = {
   id: number
@@ -82,9 +83,9 @@ const LoginPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-[#FFD6D5] hover:underline"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#FFD6D5] hover:text-white transition"
                   >
-                    {showPassword ? 'Hide' : 'Show'}
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
               </div>
