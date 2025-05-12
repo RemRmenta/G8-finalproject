@@ -15,6 +15,7 @@ type JsonUser = {
 const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
 
@@ -66,18 +67,30 @@ const LoginPage = () => {
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-lg font-semibold text-[#FFD6D5] mb-3">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-5 rounded-xl bg-[#1f1f1f] text-white border border-[#EE7879] placeholder:text-gray-400 focus:ring-2 focus:ring-[#f7d3d3] outline-none transition duration-200 text-lg"
-                  placeholder="Enter your username"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-5 rounded-xl bg-[#1f1f1f] text-white border border-[#EE7879] placeholder:text-gray-400 focus:ring-2 focus:ring-[#f7d3d3] outline-none transition duration-200 text-lg pr-16"
+                    placeholder="Enter your username"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-[#FFD6D5] hover:underline"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
               </div>
+
               {error && <p className="text-red-400 text-base font-medium">{error}</p>}
+
               <button
                 type="submit"
                 className="w-full bg-[#EE7879] hover:bg-[#f7d3d3] hover:text-black text-white font-semibold py-5 px-6 rounded-xl shadow-md transition duration-300 hover:scale-105 text-lg"
