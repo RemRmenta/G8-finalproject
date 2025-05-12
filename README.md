@@ -44,14 +44,23 @@ export default config;
 ```css
 @import "tailwindcss";
 ```
+### 6. 🌟 Set Up ShadCN UI
+```bash
+npx shadcn-ui@latest init
+```
 
-### 6. 📦 Install Additional Dependencies
+Install a sample component to test
+```
+npx shadcn-ui@latest add button
+```
+
+### 7. 📦 Install Additional Dependencies
 
 ```bash
 npm install apexcharts react-apexcharts zod
 ```
 
-### 7. 🚀 Run Development Server
+### 8. 🚀 Run Development Server
 
 ```bash
 npm run dev
