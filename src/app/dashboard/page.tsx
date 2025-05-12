@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 
-import { ApexOptions, ApexAxisChartSeries } from 'apexcharts';
+import { ApexOptions } from 'apexcharts';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
@@ -79,7 +79,10 @@ export default function DashboardPage() {
     },
   };
 
-  const barChartData: { series: ApexAxisChartSeries; options: ApexOptions } = {
+  const barChartData: {
+    series: { name: string; data: number[] }[];
+    options: ApexOptions;
+  } = {
     series: [
       {
         name: 'Users',
