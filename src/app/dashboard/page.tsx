@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 
-import { ApexOptions } from 'apexcharts';
+import { ApexOptions, ApexAxisChartSeries } from 'apexcharts';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
@@ -35,7 +35,8 @@ export default function DashboardPage() {
     );
   }
 
-  // Chart Data for Users, Posts, and Comments
+  const total = users.length + posts.length + comments.length;
+
   const donutChartData: { series: number[]; options: ApexOptions } = {
     series: [users.length, posts.length, comments.length],
     options: {
@@ -44,12 +45,12 @@ export default function DashboardPage() {
         type: 'donut',
         background: 'transparent',
       },
-      colors: ['#FDE2E4', '#F8A7B4', '#F36F8A'], // Pink color shades
+      colors: ['#FDE2E4', '#F8A7B4', '#F36F8A'],
       dataLabels: {
         enabled: true,
         formatter: (val: number, opts) => {
           const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+          const percentage = ((raw / total) * 100).toFixed(1);
           return `${percentage}%`;
         },
         style: {
@@ -62,7 +63,7 @@ export default function DashboardPage() {
         theme: 'light',
         y: {
           formatter: (value: number) => {
-            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+            const percentage = ((value / total) * 100).toFixed(1);
             return `${value} (${percentage}%)`;
           },
         },
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     },
   };
 
-  const barChartData: { series: any[]; options: ApexOptions } = {
+  const barChartData: { series: ApexAxisChartSeries; options: ApexOptions } = {
     series: [
       {
         name: 'Users',
@@ -98,7 +99,7 @@ export default function DashboardPage() {
         type: 'bar',
         background: 'transparent',
       },
-      colors: ['#FF4081', '#F8A7B4', '#F36F8A'], // Pink shades
+      colors: ['#FF4081', '#F8A7B4', '#F36F8A'],
       xaxis: {
         categories: ['Total'],
       },
@@ -132,12 +133,12 @@ export default function DashboardPage() {
         type: 'pie',
         background: 'transparent',
       },
-      colors: ['#FF4081', '#F8A7B4', '#F36F8A'], // Pink shades
+      colors: ['#FF4081', '#F8A7B4', '#F36F8A'],
       dataLabels: {
         enabled: true,
         formatter: (val: number, opts) => {
           const raw = opts.w.config.series[opts.seriesIndex];
-          const percentage = ((raw / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+          const percentage = ((raw / total) * 100).toFixed(1);
           return `${percentage}%`;
         },
         style: {
@@ -150,7 +151,7 @@ export default function DashboardPage() {
         theme: 'light',
         y: {
           formatter: (value: number) => {
-            const percentage = ((value / (users.length + posts.length + comments.length)) * 100).toFixed(1);
+            const percentage = ((value / total) * 100).toFixed(1);
             return `${value} (${percentage}%)`;
           },
         },
@@ -169,7 +170,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-900 px-8 py-20 text-white">
       <div className="max-w-7xl mx-auto">
-        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -179,7 +179,6 @@ export default function DashboardPage() {
           DASHBOARD
         </motion.h1>
 
-        {/* Overview Card */}
         <motion.div
           key="overview-card"
           initial={{ opacity: 0, y: -20 }}
@@ -195,7 +194,6 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
-        {/* Chart Display */}
         <motion.div
           key={`${chartType}-chart`}
           whileHover={{ scale: 1.05 }}
@@ -206,27 +204,17 @@ export default function DashboardPage() {
           {chartType === 'bar' && <Chart options={barChartData.options} series={barChartData.series} type="bar" width="100%" />}
         </motion.div>
 
-        {/* Chart Toggle Buttons */}
         <div className="flex justify-center space-x-4 mb-8">
-          <button
-            onClick={() => setChartType('donut')}
-            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700"
-          >
+          <button onClick={() => setChartType('donut')} className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
             Donut Chart
           </button>
-          <button
-            onClick={() => setChartType('pie')}
-            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700"
-          >
+          <button onClick={() => setChartType('pie')} className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
             Pie Chart
           </button>
-          <button
-            onClick={() => setChartType('bar')}
-            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700"
-          >
+          <button onClick={() => setChartType('bar')} className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
             Bar Chart
           </button>
-        </div> 
+        </div>
       </div>
     </main>
   );
