@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
-import { ApexOptions, ApexAxisChartSeries } from 'apexcharts';
 import { motion } from 'framer-motion';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
