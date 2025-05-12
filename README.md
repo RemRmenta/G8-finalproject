@@ -57,7 +57,11 @@ npx shadcn-ui@latest add button
 ### 7. 📦 Install Additional Dependencies
 
 ```bash
-npm install apexcharts react-apexcharts zod
+npm install framer-motion @tanstack/react-query apexcharts react-apexcharts react-hook-form zod @hookform/resolvers class-variance-authority tailwind-variants lucide-react
+```
+
+```bash
+npx shadcn-ui@latest add card button
 ```
 
 ### 8. 🚀 Run Development Server
