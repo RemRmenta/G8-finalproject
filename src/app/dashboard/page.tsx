@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
+
 import { ApexOptions } from 'apexcharts';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
