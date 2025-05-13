@@ -80,7 +80,7 @@ Access the app at: [http://localhost:3000](http://localhost:3000)
 - Led the project development, coordinated team tasks, and handled feature integration.
 
 ### 💻 Endaya — Frontend Developer
-- Built responsive UI components using Tailwind CSS and integrated API data.
+- Built responsive UI/UX components using Tailwind CSS and integrated API data.
 
 ### 🛠 Gaupo — Backend Developer
 - Worked on data fetching, authentication logic, and API interaction.
